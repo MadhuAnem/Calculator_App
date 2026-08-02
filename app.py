@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from calculators import CATEGORIES, ALL_CALCULATORS, total_count
 from calculators.base import option_key
-from calculators.financial import FX_RATES, CURRENCIES, _currency_code
+from calculators.financial import FX_RATES, CURRENCIES, _currency_code, _currency_option_for
 
 # ── Color scheme (light / white theme) ──────────────────────────────────
 COLORS = {
@@ -545,9 +545,17 @@ class AllCalcApp:
                      font=("Segoe UI", 10), width=34, anchor="w").pack(side=tk.LEFT)
             if field.field_type == "select":
                 var = tk.StringVar(value=field.default or field.options[0])
+                is_currency = (calc.id == "fin_currency" and field.key in ("from", "to"))
                 combo = ttk.Combobox(row, textvariable=var, values=field.options,
-                                     state="readonly", width=44, style="TCombobox")
+                                     state="normal" if is_currency else "readonly",
+                                     width=44, style="TCombobox")
                 combo.pack(side=tk.LEFT)
+                if is_currency:
+                    # Editable + searchable dropdown for currency selection
+                    combo.bind(
+                        "<KeyRelease>",
+                        lambda e, c=combo, opts=list(field.options): self._on_combo_type(c, opts),
+                    )
                 self.input_widgets[field.key] = var
                 self._combo_widgets[field.key] = combo
             elif field.field_type == "date":
@@ -593,6 +601,20 @@ class AllCalcApp:
             if c.name == name:
                 self._show_calculator(c)
                 return
+
+# ── Editable combobox (search-as-you-type) ───────────────────────────
+    def _on_combo_type(self, combo, options):
+        """Filter dropdown options as user types, for editable currency combos."""
+        typed = combo.get().strip().lower()
+        if not typed:
+            combo.configure(values=options)
+            combo.event_generate("<Down>")
+            return
+        # Filter: show options matching typed text or country/code
+        filtered = [o for o in options if typed in o.lower()]
+        combo.configure(values=filtered)
+        if filtered:
+            combo.event_generate("<Down>")
 
     # ── Currency Conversion extras ───────────────────────────────────────
     def _build_currency_extra(self, form_card):

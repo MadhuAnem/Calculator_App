@@ -753,8 +753,39 @@ def _currency_options():
 
 
 def _currency_code(label):
-    """Extract currency code from a dropdown label."""
-    return option_key(label)
+    """Extract currency code from a dropdown label or partial typed input.
+
+    Accepts a full option label ("USD — United States · 1 per USD"),
+    a code ("USD"), a country ("United States"), a currency name
+    ("US Dollar"), or a symbol ("$").
+    """
+    key = option_key(str(label)).strip()
+    up = key.upper()
+    if up in CURRENCIES:
+        return up
+    low = key.lower()
+    for code, info in CURRENCIES.items():
+        if (low == code.lower()
+                or low == info["name"].lower()
+                or low == info["country"].lower()
+                or low == info["symbol"].lower()
+                or (len(low) >= 3 and low in info["country"].lower())
+                or (len(low) >= 3 and low in info["name"].lower())):
+            return code
+    return up
+
+
+def _currency_option_for(text):
+    """Return the full dropdown option label that best matches typed text.
+
+    Example: "India" -> "INR — India · 83.2 per USD"
+    """
+    code = _currency_code(text)
+    if code in CURRENCIES:
+        for opt in _currency_options():
+            if option_key(opt).upper() == code:
+                return opt
+    return None
 
 
 class CurrencyConversionCalc(Calculator):
