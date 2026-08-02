@@ -550,6 +550,12 @@ class AllCalcApp:
                                      state="normal" if is_currency else "readonly",
                                      width=44, style="TCombobox")
                 combo.pack(side=tk.LEFT)
+                # Remember the full option list so we can restore it after
+                # search-as-you-type filtering or after a selection is made.
+                combo._full_options = list(field.options)
+                # Click anywhere on a dropdown opens its list (not just the arrow),
+                # so every service's select is clearly clickable.
+                combo.bind("<Button-1>", lambda e, c=combo: self._open_dropdown(c))
                 if is_currency:
                     # Editable + searchable dropdown for currency selection
                     combo.bind(
@@ -602,7 +608,21 @@ class AllCalcApp:
                 self._show_calculator(c)
                 return
 
-# ── Editable combobox (search-as-you-type) ───────────────────────────
+# ── Combobox helpers ────────────────────────────────────────────────
+    def _open_dropdown(self, combo):
+        """Open a combobox's dropdown list when the user clicks anywhere on it.
+
+        Also restores the full option list so a previously filtered/searchable
+        dropdown always shows every choice on a fresh click.
+        """
+        try:
+            full = getattr(combo, "_full_options", None)
+            if full:
+                combo.configure(values=list(full))
+            combo.event_generate("<Down>")
+        except tk.TclError:
+            pass
+
     def _on_combo_type(self, combo, options):
         """Filter dropdown options as user types, for editable currency combos."""
         typed = combo.get().strip().lower()
@@ -615,6 +635,17 @@ class AllCalcApp:
         combo.configure(values=filtered)
         if filtered:
             combo.event_generate("<Down>")
+
+    def _on_currency_selected(self):
+        """After picking a currency from the list, restore the full option
+        list so the dropdown is never left in a filtered state."""
+        for key in ("from", "to"):
+            combo = self._combo_widgets.get(key)
+            if combo is not None:
+                full = getattr(combo, "_full_options", None)
+                if full:
+                    combo.configure(values=list(full))
+        self._update_currency_ratio()
 
     # ── Currency Conversion extras ───────────────────────────────────────
     def _build_currency_extra(self, form_card):
@@ -630,7 +661,14 @@ class AllCalcApp:
         for key in ("from", "to"):
             w = self._combo_widgets.get(key)
             if w:
-                w.bind("<<ComboboxSelected>>", lambda e: self._update_currency_ratio())
+                w.bind("<<ComboboxSelected>>",
+                       lambda e: self._on_currency_selected())
+        # Hint text under the currency dropdowns
+        hint = tk.Label(form_card, text="💡 Click a dropdown and choose a country, "
+                                        "or type a code / country name to search.",
+                        bg=COLORS["card"], fg=COLORS["text_dim"],
+                        font=("Segoe UI", 8, "italic"))
+        hint.pack(fill=tk.X, pady=(2, 0))
         self._update_currency_ratio()
 
     def _swap_currencies(self):
