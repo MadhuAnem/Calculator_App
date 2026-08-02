@@ -123,15 +123,21 @@ class AllCalcApp:
             "TEntry", fieldbackground=COLORS["bg_light"], foreground=COLORS["text"],
             bordercolor=COLORS["border"], insertcolor=COLORS["text"],
         )
+        # Combobox: light-blue field + solid blue arrow button so it is
+        # unmistakably a dropdown (not a plain text entry).
         style.configure(
-            "TCombobox", fieldbackground=COLORS["bg_light"],
-            foreground=COLORS["text"], background=COLORS["bg_light"],
-            arrowcolor=COLORS["accent"], bordercolor=COLORS["border"],
+            "TCombobox", fieldbackground="#eef6ff",
+            foreground=COLORS["text"], background=COLORS["accent"],
+            arrowcolor="#ffffff", bordercolor=COLORS["accent"],
             lightcolor=COLORS["accent"], darkcolor=COLORS["accent"],
+            padding=(6, 4), relief="solid",
         )
         style.map("TCombobox",
-                  fieldbackground=[("readonly", COLORS["bg_light"])],
-                  foreground=[("readonly", COLORS["text"])])
+                  fieldbackground=[("readonly", "#eef6ff")],
+                  foreground=[("readonly", COLORS["text"])],
+                  background=[("readonly", COLORS["accent"])],
+                  arrowcolor=[("readonly", "#ffffff")],
+                  bordercolor=[("readonly", COLORS["accent"])])
         style.configure(
             "TCheckbutton", background=COLORS["card"], foreground=COLORS["text"],
         )
@@ -464,13 +470,25 @@ class AllCalcApp:
                             highlightbackground=COLORS["border"], highlightthickness=1,
                             cursor="hand2")
             card.pack(fill=tk.X, pady=4)
-            card.bind("<Button-1>", lambda e, cc=c: self._show_calculator(cc))
-            tk.Label(card, text=f"{c.icon}  {c.name}", bg=COLORS["card"],
-                     fg=COLORS["text"], font=("Segoe UI", 12, "bold")).pack(anchor="w")
-            tk.Label(card, text=c.description, bg=COLORS["card"],
-                     fg=COLORS["text_dim"], font=("Segoe UI", 9)).pack(anchor="w")
-            tk.Label(card, text=f"e.g., {c.example}", bg=COLORS["card"],
-                     fg=COLORS["accent2"], font=("Segoe UI", 8)).pack(anchor="w", pady=(2, 0))
+            # Make the card AND every child clickable → open the calculator
+            def open_calc(e=None, cc=c):
+                self._show_calculator(cc)
+            card.bind("<Button-1>", open_calc)
+            title_lbl = tk.Label(card, text=f"{c.icon}  {c.name}", bg=COLORS["card"],
+                                 fg=COLORS["text"], font=("Segoe UI", 12, "bold"),
+                                 cursor="hand2")
+            title_lbl.pack(anchor="w")
+            title_lbl.bind("<Button-1>", open_calc)
+            desc_lbl = tk.Label(card, text=c.description, bg=COLORS["card"],
+                                fg=COLORS["text_dim"], font=("Segoe UI", 9),
+                                cursor="hand2")
+            desc_lbl.pack(anchor="w")
+            desc_lbl.bind("<Button-1>", open_calc)
+            ex_lbl = tk.Label(card, text=f"e.g., {c.example}", bg=COLORS["card"],
+                              fg=COLORS["accent2"], font=("Segoe UI", 8),
+                              cursor="hand2")
+            ex_lbl.pack(anchor="w", pady=(2, 0))
+            ex_lbl.bind("<Button-1>", open_calc)
 
     def _on_cat_select(self, category):
         name = self.cat_combo_var.get()
@@ -698,4 +716,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
