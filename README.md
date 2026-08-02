@@ -110,13 +110,12 @@ class MyCalc(Calculator):
 
 ## Verification
 
-Run the built-in validation suite:
+The app registers every calculator automatically through `calculators/__init__.py`.
+You can confirm all calculators load correctly by simply starting the app:
 
 ```
-python check_syntax.py
+python app.py
 ```
-
-It verifies every module compiles, counts all registered calculators, and tests each calculator's `calculate()` method with default inputs.
 
 ---
 
