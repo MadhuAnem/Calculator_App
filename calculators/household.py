@@ -1,6 +1,6 @@
 """Household calculators."""
 import math
-from .base import Calculator, CalcResult, InputField, fmt, money
+from .base import Calculator, CalcResult, InputField, fmt, money, unit_option, option_key
 
 
 class ElectricityBillCalc(Calculator):
@@ -86,21 +86,28 @@ class CookingMeasurementsCalc(Calculator):
     icon = "🥄"
     example = "1 cup = 16 tablespoons = 48 teaspoons"
 
+    def _options(self):
+        return [
+            unit_option("Teaspoon", "4.92892 ml"),
+            unit_option("Tablespoon", "14.7868 ml"),
+            unit_option("Fluid ounce", "29.5735 ml"),
+            unit_option("Cup", "236.588 ml"),
+            unit_option("Pint", "473.176 ml"),
+            unit_option("Quart", "946.353 ml"),
+            unit_option("Milliliter", "1 ml"),
+        ]
+
     def get_inputs(self):
         return [
             InputField("value", "Value", "number", 1),
-            InputField("from", "From", "select", "Cup", options=[
-                "Teaspoon", "Tablespoon", "Fluid ounce", "Cup", "Pint", "Quart", "Milliliter",
-            ]),
-            InputField("to", "To", "select", "Tablespoon", options=[
-                "Teaspoon", "Tablespoon", "Fluid ounce", "Cup", "Pint", "Quart", "Milliliter",
-            ]),
+            InputField("from", "From", "select", unit_option("Cup", "236.588 ml"), options=self._options()),
+            InputField("to", "To", "select", unit_option("Tablespoon", "14.7868 ml"), options=self._options()),
         ]
 
     def calculate(self, values):
         value = self.num(values, "value")
-        f = values.get("from", "Cup")
-        t = values.get("to", "Tablespoon")
+        f = option_key(values.get("from", unit_option("Cup", "236.588 ml")))
+        t = option_key(values.get("to", unit_option("Tablespoon", "14.7868 ml")))
         to_ml = {
             "Teaspoon": 4.92892, "Tablespoon": 14.7868, "Fluid ounce": 29.5735,
             "Cup": 236.588, "Pint": 473.176, "Quart": 946.353, "Milliliter": 1,

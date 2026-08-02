@@ -1,6 +1,6 @@
 """Computer Science calculators."""
 import math
-from .base import Calculator, CalcResult, InputField, fmt
+from .base import Calculator, CalcResult, InputField, fmt, unit_option, option_key
 
 
 class BinaryConversionCalc(Calculator):
@@ -114,21 +114,28 @@ class DataSizeCalc(Calculator):
     icon = "💾"
     example = "1 GB = 1024 MB"
 
+    def _options(self):
+        return [
+            unit_option("Bit", "0.125 bytes"),
+            unit_option("Byte", "1 byte"),
+            unit_option("KB", "1024 bytes"),
+            unit_option("MB", "1,048,576 bytes"),
+            unit_option("GB", "1,073,741,824 bytes"),
+            unit_option("TB", "1,099,511,627,776 bytes"),
+            unit_option("PB", "1,125,899,906,842,624 bytes"),
+        ]
+
     def get_inputs(self):
         return [
             InputField("value", "Value", "number", 1),
-            InputField("from", "From unit", "select", "GB", options=[
-                "Bit", "Byte", "KB", "MB", "GB", "TB", "PB",
-            ]),
-            InputField("to", "To unit", "select", "MB", options=[
-                "Bit", "Byte", "KB", "MB", "GB", "TB", "PB",
-            ]),
+            InputField("from", "From unit", "select", unit_option("GB", "1,073,741,824 bytes"), options=self._options()),
+            InputField("to", "To unit", "select", unit_option("MB", "1,048,576 bytes"), options=self._options()),
         ]
 
     def calculate(self, values):
         value = self.num(values, "value")
-        f = values.get("from", "GB")
-        t = values.get("to", "MB")
+        f = option_key(values.get("from", unit_option("GB", "1,073,741,824 bytes")))
+        t = option_key(values.get("to", unit_option("MB", "1,048,576 bytes")))
         units = {"Bit": 1 / 8, "Byte": 1, "KB": 1024, "MB": 1024 ** 2,
                  "GB": 1024 ** 3, "TB": 1024 ** 4, "PB": 1024 ** 5}
         result = value * units[f] / units[t]
@@ -147,17 +154,25 @@ class NetworkBandwidthCalc(Calculator):
     icon = "🌐"
     example = "100 Mbps = 12.5 MB/s"
 
+    def _options(self):
+        return [
+            unit_option("Kbps", "1000 bits/s"),
+            unit_option("Mbps", "1,000,000 bits/s"),
+            unit_option("Gbps", "1,000,000,000 bits/s"),
+            unit_option("KB/s", "8000 bits/s"),
+            unit_option("MB/s", "8,000,000 bits/s"),
+            unit_option("GB/s", "8,000,000,000 bits/s"),
+        ]
+
     def get_inputs(self):
         return [
             InputField("speed", "Speed", "number", 100),
-            InputField("unit", "Unit", "select", "Mbps", options=[
-                "Kbps", "Mbps", "Gbps", "KB/s", "MB/s", "GB/s",
-            ]),
+            InputField("unit", "Unit", "select", unit_option("Mbps", "1,000,000 bits/s"), options=self._options()),
         ]
 
     def calculate(self, values):
         speed = self.num(values, "speed")
-        unit = values.get("unit", "Mbps")
+        unit = option_key(values.get("unit", unit_option("Mbps", "1,000,000 bits/s")))
         # convert to bits/sec
         to_bps = {
             "Kbps": 1000, "Mbps": 1000 ** 2, "Gbps": 1000 ** 3,
@@ -180,16 +195,23 @@ class DownloadTimeCalc(Calculator):
     icon = "⬇️"
     example = "2 GB at 10 Mbps → 27.3 min"
 
+    def _options(self):
+        return [
+            unit_option("MB", "8,000,000 bits"),
+            unit_option("GB", "8,000,000,000 bits"),
+            unit_option("TB", "8,000,000,000,000 bits"),
+        ]
+
     def get_inputs(self):
         return [
             InputField("size", "File size", "number", 2),
-            InputField("size_unit", "Size unit", "select", "GB", options=["MB", "GB", "TB"]),
+            InputField("size_unit", "Size unit", "select", unit_option("GB", "8,000,000,000 bits"), options=self._options()),
             InputField("speed", "Download speed (Mbps)", "number", 10),
         ]
 
     def calculate(self, values):
         size = self.num(values, "size")
-        su = values.get("size_unit", "GB")
+        su = option_key(values.get("size_unit", unit_option("GB", "8,000,000,000 bits")))
         speed = self.num(values, "speed")
         if speed <= 0:
             raise ValueError("Speed must be positive")
@@ -211,17 +233,24 @@ class StorageRequirementsCalc(Calculator):
     icon = "🗄️"
     example = "1000 files × 5 MB = 4.88 GB"
 
+    def _options(self):
+        return [
+            unit_option("KB", "1024 bytes"),
+            unit_option("MB", "1,048,576 bytes"),
+            unit_option("GB", "1,073,741,824 bytes"),
+        ]
+
     def get_inputs(self):
         return [
             InputField("files", "Number of files", "number", 1000),
             InputField("size", "Average file size", "number", 5),
-            InputField("unit", "Size unit", "select", "MB", options=["KB", "MB", "GB"]),
+            InputField("unit", "Size unit", "select", unit_option("MB", "1,048,576 bytes"), options=self._options()),
         ]
 
     def calculate(self, values):
         files = self.num(values, "files")
         size = self.num(values, "size")
-        unit = values.get("unit", "MB")
+        unit = option_key(values.get("unit", unit_option("MB", "1,048,576 bytes")))
         mul = {"KB": 1024, "MB": 1024 ** 2, "GB": 1024 ** 3}
         bytes_total = files * size * mul[unit]
         return [

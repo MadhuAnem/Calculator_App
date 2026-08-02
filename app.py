@@ -417,7 +417,7 @@ class AllCalcApp:
             if field.field_type == "select":
                 var = tk.StringVar(value=field.default or field.options[0])
                 combo = ttk.Combobox(row, textvariable=var, values=field.options,
-                                     state="readonly", width=24)
+                                     state="readonly", width=40)
                 combo.pack(side=tk.LEFT)
                 self.input_widgets[field.key] = var
             elif field.field_type == "date":
