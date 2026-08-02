@@ -1,13 +1,11 @@
-# TODO — Enhance conversion dropdowns with parameters & ratios
+# TODO — Expand currencies & make all dropdowns click-selectable
 
 ## Steps
 
-- [x] 1. `calculators/base.py` — add `unit_option()` and `option_key()` helpers
-- [x] 2. `calculators/financial.py` — Currency Conversion: add country names + rate ratios to dropdowns
-- [x] 3. `calculators/unit_conversion.py` — add ratios/parameters to all 13 converter dropdowns
-- [x] 4. `calculators/agriculture.py` — Land Area dropdown ratios
-- [x] 5. `calculators/household.py` — Cooking Measurements dropdown ratios
-- [x] 6. `calculators/computer_science.py` — Data Size, Bandwidth, Download Time, Storage ratios
-- [x] 7. `app.py` — widen Combobox so richer options display fully
-- [x] 8. Verify app imports & runs (python -c import check)
+- [x] 1. `calculators/financial.py` — expand `CURRENCIES` + `FX_RATES` to cover all major world countries (with ISO codes, names, symbols, and approximate exchange rates vs USD)
+- [x] 2. `app.py` — make every select/combobox open its dropdown list on click (not only the arrow) across all services
+- [x] 3. `app.py` — keep both currency dropdowns editable/searchable (state="normal", NOT read-only) and restore the full country list after each selection
+- [x] 4. `app.py` — add a hint label under the currency dropdowns ("click to pick a country, or type to search")
+- [x] 5. Verify: every currency option shows its ISO code + country + rate; dropdowns open on click; Swap button and live ratio still work
+- [x] 6. Run import/UI check to confirm the app starts cleanly
 
