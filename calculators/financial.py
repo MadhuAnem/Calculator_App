@@ -1,6 +1,6 @@
 """Financial Calculations."""
 import math
-from .base import Calculator, CalcResult, InputField, fmt, money
+from .base import Calculator, CalcResult, InputField, fmt, money, unit_option, option_key
 
 
 class SimpleInterestCalc(Calculator):
@@ -722,18 +722,18 @@ class CommissionCalc(Calculator):
 
 
 CURRENCIES = {
-    "USD": {"name": "US Dollar", "symbol": "$"},
-    "EUR": {"name": "Euro", "symbol": "€"},
-    "GBP": {"name": "British Pound", "symbol": "£"},
-    "INR": {"name": "Indian Rupee", "symbol": "₹"},
-    "JPY": {"name": "Japanese Yen", "symbol": "¥"},
-    "AUD": {"name": "Australian Dollar", "symbol": "A$"},
-    "CAD": {"name": "Canadian Dollar", "symbol": "C$"},
-    "CNY": {"name": "Chinese Yuan", "symbol": "¥"},
-    "SGD": {"name": "Singapore Dollar", "symbol": "S$"},
-    "AED": {"name": "UAE Dirham", "symbol": "د.إ"},
-    "PHP": {"name": "Philippine Peso", "symbol": "₱"},
-    "IDR": {"name": "Indonesian Rupiah", "symbol": "Rp"},
+    "USD": {"name": "US Dollar", "symbol": "$", "country": "United States"},
+    "EUR": {"name": "Euro", "symbol": "€", "country": "Eurozone"},
+    "GBP": {"name": "British Pound", "symbol": "£", "country": "United Kingdom"},
+    "INR": {"name": "Indian Rupee", "symbol": "₹", "country": "India"},
+    "JPY": {"name": "Japanese Yen", "symbol": "¥", "country": "Japan"},
+    "AUD": {"name": "Australian Dollar", "symbol": "A$", "country": "Australia"},
+    "CAD": {"name": "Canadian Dollar", "symbol": "C$", "country": "Canada"},
+    "CNY": {"name": "Chinese Yuan", "symbol": "¥", "country": "China"},
+    "SGD": {"name": "Singapore Dollar", "symbol": "S$", "country": "Singapore"},
+    "AED": {"name": "UAE Dirham", "symbol": "د.إ", "country": "United Arab Emirates"},
+    "PHP": {"name": "Philippine Peso", "symbol": "₱", "country": "Philippines"},
+    "IDR": {"name": "Indonesian Rupiah", "symbol": "Rp", "country": "Indonesia"},
 }
 
 # Base rate: 1 USD worth of each currency (approx. daily rates)
@@ -742,6 +742,19 @@ FX_RATES = {
     "AUD": 1.52, "CAD": 1.36, "CNY": 7.24, "SGD": 1.34, "AED": 3.67,
     "PHP": 56.3, "IDR": 15700,
 }
+
+
+def _currency_options():
+    """Build dropdown options showing code, country, and rate vs 1 USD."""
+    return [
+        unit_option(code, f"{CURRENCIES[code]['country']} · {fmt(FX_RATES[code], 4)} per USD")
+        for code in CURRENCIES
+    ]
+
+
+def _currency_code(label):
+    """Extract currency code from a dropdown label."""
+    return option_key(label)
 
 
 class CurrencyConversionCalc(Calculator):
@@ -755,14 +768,14 @@ class CurrencyConversionCalc(Calculator):
     def get_inputs(self):
         return [
             InputField("amount", "Amount", "number", 100),
-            InputField("from", "From currency", "select", "USD", options=list(CURRENCIES.keys())),
-            InputField("to", "To currency", "select", "INR", options=list(CURRENCIES.keys())),
+            InputField("from", "From currency", "select", _currency_options()[0], options=_currency_options()),
+            InputField("to", "To currency", "select", unit_option("INR", "India · 83.2 per USD"), options=_currency_options()),
         ]
 
     def calculate(self, values):
         amount = self.num(values, "amount")
-        c_from = values.get("from", "USD")
-        c_to = values.get("to", "INR")
+        c_from = _currency_code(values.get("from", _currency_options()[0]))
+        c_to = _currency_code(values.get("to", unit_option("INR", "India · 83.2 per USD")))
         rate = FX_RATES[c_to] / FX_RATES[c_from]
         converted = amount * rate
         sym_f = CURRENCIES[c_from]["symbol"]

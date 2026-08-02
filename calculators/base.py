@@ -30,6 +30,28 @@ def money(x: Any, currency: str = "$") -> str:
     return f"{currency}{fmt(f, 2)}"
 
 
+_SEP = " — "
+
+
+def unit_option(name: str, param: Any = "") -> str:
+    """Build a dropdown option label that shows its conversion parameter/ratio.
+
+    Example: unit_option("Kilometer", "1000 m") -> "Kilometer — 1000 m"
+    The part before the separator is the key used by option_key().
+    """
+    param = str(param).strip()
+    return f"{name}{_SEP}{param}" if param else name
+
+
+def option_key(text: str) -> str:
+    """Extract the underlying unit/currency key from an option label.
+
+    "Kilometer — 1000 m" -> "Kilometer"
+    "USD — United States (1.0)" -> "USD"
+    """
+    return str(text).split(_SEP, 1)[0].strip()
+
+
 class InputField:
     """Definition of one input field for a calculator form."""
 

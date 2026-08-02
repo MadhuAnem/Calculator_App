@@ -1,6 +1,6 @@
 """Agriculture calculators."""
 import math
-from .base import Calculator, CalcResult, InputField, fmt
+from .base import Calculator, CalcResult, InputField, fmt, unit_option, option_key
 
 
 class SeedRateCalc(Calculator):
@@ -127,17 +127,26 @@ class LandAreaCalc(Calculator):
     icon = "🗺️"
     example = "1 acre = 0.4047 ha = 4046.86 m²"
 
+    def _options(self):
+        return [
+            unit_option("Acre", "4046.86 m²"),
+            unit_option("Hectare", "10,000 m²"),
+            unit_option("Square meter", "1 m²"),
+            unit_option("Square feet", "0.092903 m²"),
+            unit_option("Guntha", "101.171 m²"),
+        ]
+
     def get_inputs(self):
         return [
             InputField("value", "Value", "number", 1),
-            InputField("from", "From", "select", "Acre", options=["Acre", "Hectare", "Square meter", "Square feet", "Guntha"]),
-            InputField("to", "To", "select", "Hectare", options=["Acre", "Hectare", "Square meter", "Square feet", "Guntha"]),
+            InputField("from", "From", "select", unit_option("Acre", "4046.86 m²"), options=self._options()),
+            InputField("to", "To", "select", unit_option("Hectare", "10,000 m²"), options=self._options()),
         ]
 
     def calculate(self, values):
         value = self.num(values, "value")
-        f = values.get("from", "Acre")
-        t = values.get("to", "Hectare")
+        f = option_key(values.get("from", unit_option("Acre", "4046.86 m²")))
+        t = option_key(values.get("to", unit_option("Hectare", "10,000 m²")))
         to_sqm = {"Acre": 4046.86, "Hectare": 10000, "Square meter": 1, "Square feet": 0.092903, "Guntha": 101.171}
         result = value * to_sqm[f] / to_sqm[t]
         return [CalcResult(f"{fmt(value)} {f} = {fmt(result, 4)} {t}", result)]
